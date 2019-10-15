@@ -22,9 +22,10 @@ class Agent:
 		self.epsilon_min = 0.01
 		self.epsilon_decay = 0.995
 
+		# si estás entrenando se crea un nuevo modelo si se está evaluando se toma el que se ponga
 		self.model = load_model("models/" + model_name) if is_eval else self._model()
 
-	def _model(self):
+	def _model(self): #el modelo que se crea para el entrenamiento
 		model = Sequential()
 		model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
 		model.add(Dense(units=32, activation="relu"))
@@ -34,17 +35,20 @@ class Agent:
 
 		return model
 
-	def act(self, state):
+	def act(self, state): # se elige la acción a tomar
+		# si no es una evaluación y si el número random es menor que la epsilon
 		if not self.is_eval and np.random.rand() <= self.epsilon:
+			# se devuelve una de las tres acciones
 			return random.randrange(self.action_size)
-
+		# si no se cumple se trata de predecir con el modelo usando los estados previos
 		options = self.model.predict(state)
+		# se devuelve la opción con mayor probabilidad
 		return np.argmax(options[0])
 
 	def expReplay(self, batch_size):
 		mini_batch = []
 		l = len(self.memory)
-		for i in xrange(l - batch_size + 1, l):
+		for i in range(l - batch_size + 1, l):
 			mini_batch.append(self.memory[i])
 
 		for state, action, reward, next_state, done in mini_batch:
